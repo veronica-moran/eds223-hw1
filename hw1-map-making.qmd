@@ -1,0 +1,336 @@
+
+```{r}
+library(tidyverse)
+library(sf)
+library(here)
+library(stars)
+library(tmap)
+```
+
+# Research Question
+How does potential exposure to wastewater discharge
+
+
+```{r}
+# Reading in data
+ejscreen <- sf::st_read(here::here(
+  "data",
+  "ejscreen",
+  "EJSCREEN_2023_BG_StatePct_with_AS_CNMI_GU_VI.gdb"
+))
+
+# Filtering to Monterey County
+monterey <- ejscreen %>%
+  dplyr::filter(CNTY_NAME %in% c("Monterey County"))
+```
+
+```{r}
+# Filtering to columns to explore
+mc <- monterey |>
+  filter(ACSTOTPOP > 0) |>
+  select(
+    ID,
+    ACSTOTPOP,
+    AREALAND,
+    P_PM25,
+    P_OZONE,
+    P_DSLPM,
+    P_CANCER,
+    P_RESP,
+    P_RSEI_AIR,
+    P_PTRAF,
+    P_LDPNT,
+    P_PNPL,
+    P_PRMP,
+    P_PTSDF,
+    P_UST,
+    P_PWDIS,
+    DEMOGIDX_2,
+    PEOPCOLORPCT,
+    P_LINGISOPCT,
+    P_LOWINCPCT
+  )
+```
+
+
+```{r}
+# Exploring graphs of columns
+
+tm_shape(mc) +
+  tm_polygons(fill = "ACSTOTPOP")
+
+tm_shape(mc) +
+  tm_polygons(fill = "AREALAND")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_PM25")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_OZONE")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_DSLPM")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_CANCER")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_RESP")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_RSEI_AIR")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_PTRAF")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_LDPNT")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_PNPL")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_PRMP")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_PTSDF")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_UST")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_PWDIS")
+
+tm_shape(mc) +
+  tm_polygons(fill = "DEMOGIDX_2")
+
+tm_shape(mc) +
+  tm_polygons(fill = "PEOPCOLORPCT")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_LINGISOPCT")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_LOWINCPCT")
+```
+
+
+```{r}
+# Narrowed down columns to keep exploring
+
+tm_shape(mc) +
+  tm_polygons(fill = "ACSTOTPOP")
+
+tm_shape(mc) +
+  tm_polygons(fill = "AREALAND")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_PWDIS")
+
+tm_shape(mc) +
+  tm_polygons(fill = "DEMOGIDX_2")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_PTRAF")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_PRMP")
+
+tm_shape(mc) +
+  tm_polygons(fill = "PEOPCOLORPCT")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_LINGISOPCT")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_LOWINCPCT")
+```
+
+```{r}
+# Narrowed down columns of interest
+
+tm_shape(mc) +
+  tm_polygons(fill = "ACSTOTPOP")
+
+tm_shape(mc) +
+  tm_polygons(fill = "AREALAND")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_PWDIS")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_PRMP")
+
+tm_shape(mc) +
+  tm_polygons(fill = "DEMOGIDX_2")
+
+tm_shape(mc) +
+  tm_polygons(fill = "PEOPCOLORPCT")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_LINGISOPCT")
+
+tm_shape(mc) +
+  tm_polygons(fill = "P_LOWINCPCT")
+```
+
+
+```{r}
+# Creating Scatterplots to analyze relationships
+
+ggplot(
+  data = mc,
+  mapping = aes(
+    x = DEMOGIDX_2,
+    y = P_PWDIS
+  )
+) +
+  geom_point()
+```
+
+```{r}
+ggplot(
+  data = mc,
+  mapping = aes(
+    x = PEOPCOLORPCT,
+    y = P_PWDIS
+  )
+) +
+  geom_point()
+```
+
+```{r}
+ggplot(
+  data = mc,
+  mapping = aes(
+    x = P_LINGISOPCT,
+    y = P_PWDIS
+  )
+) +
+  geom_point()
+```
+
+```{r}
+ggplot(
+  data = mc,
+  mapping = aes(
+    x = P_LOWINCPCT,
+    y = P_PWDIS
+  )
+) +
+  geom_point()
+```
+
+```{r}
+ggplot(
+  data = mc,
+  mapping = aes(
+    x = DEMOGIDX_2,
+    y = P_PRMP
+  )
+) +
+  geom_point()
+```
+
+```{r}
+ggplot(
+  data = mc,
+  mapping = aes(
+    x = PEOPCOLORPCT,
+    y = P_PRMP
+  )
+) +
+  geom_point()
+```
+
+```{r}
+ggplot(
+  data = mc,
+  mapping = aes(
+    x = P_LINGISOPCT,
+    y = P_PRMP
+  )
+) +
+  geom_point()
+```
+
+```{r}
+ggplot(
+  data = mc,
+  mapping = aes(
+    x = P_LOWINCPCT,
+    y = P_PRMP
+  )
+) +
+  geom_point()
+```
+
+
+```{r}
+# Narrowed down to environmental variable of interest
+# Highest to lowest relationship:
+# DEMOGIDX_2, PEOPCOLORPCT, P_LOWINCPCT
+
+ggplot(
+  data = mc,
+  mapping = aes(
+    x = DEMOGIDX_2,
+    y = P_PRMP
+  )
+) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+```{r}
+ggplot(
+  data = mc,
+  mapping = aes(
+    x = PEOPCOLORPCT,
+    y = P_PRMP
+  )
+) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+```{r}
+ggplot(
+  data = mc,
+  mapping = aes(
+    x = P_LOWINCPCT,
+    y = P_PRMP
+  )
+) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+```{r}
+ggplot(
+  data = mc,
+  mapping = aes(
+    x = P_LINGISOPCT,
+    y = P_PRMP
+  )
+) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+
+```{r}
+# Filtering to columns of interest
+mc <- monterey |>
+  filter(ACSTOTPOP > 0) |>
+  select(
+    ID,
+    ACSTOTPOP,
+    AREALAND,
+    P_PRMP,
+    DEMOGIDX_2,
+    PEOPCOLORPCT,
+    P_LINGISOPCT,
+    P_LOWINCPCT
+  )
+```
