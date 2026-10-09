@@ -425,18 +425,154 @@ mc_points <- st_sfc(
 ```
 
 ```{r}
-# Linguistic and high p_RMP
-# red
+# Transforming the CRS of Monterey county cities dataframe to match the CRS of the Monterey dataframe
+mc_cities <- st_transform(mc_points, crs = st_crs(mc))
+```
+
+```{r}
+# Verifying CRS match
+if (st_crs(mc_cities) == st_crs(mc)) {
+  print("it's a match!")
+} else {
+  print("still not a match")
+}
+```
+
+
+
+```{r}
+#| fig-width: 10
+#| fig-height: 7
+
+# Linguistics map 2nd version
+
+# Linguistic isolation and high RMP proximity map
+high_h <- mc |>
+  filter(P_PRMP >= 80)
 
 tm_shape(mc) +
   tm_polygons(
-    fill = "P_LINGISOPCT"
+    fill = "P_LINGISOPCT",
+    fill.legend = tm_legend(
+      title = "Limited English-Speaking Households Percentile",
+      frame = FALSE,
+      bg = FALSE
+    )
   ) +
   tm_shape(high_h) +
   tm_borders(
-    col = "darkorange",
-    lwd = .75
+    col = "orangered3",
+    lwd = 1
   ) +
   tm_shape(mc_cities) +
-  tm_dots(size = .25)
+  tm_bubbles(
+    size = .4,
+    fill = "deepskyblue1",
+    col = "black"
+  ) +
+  tm_add_legend(
+    type = "lines",
+    title = "",
+    col = "orangered3",
+    labels = "High RMP Proximity Census Blocks"
+  ) +
+  tm_add_legend(
+    type = "symbols",
+    title = "",
+    fill = "deepskyblue1",
+    col = "black",
+    labels = "Communities"
+  ) +
+  tm_scalebar(position = c("left", "bottom")) +
+  tm_compass(position = c("right", "top")) +
+  tm_title_out(
+    text = "Limited English-Speaking Households and Proximity to Hazardous Materials Facilities in Monterey County",
+    fontface = "bold",
+    position = tm_pos_out(
+      cell.h = "center",
+      cell.v = "top",
+      pos.h = "center"
+    )
+  ) +
+  tm_layout(
+    text.fontfamily = "sans",
+    style = "natural",
+    bg.color = "grey95",
+    frame = TRUE,
+    legend.text.size = 0.58,
+    legend.title.size = 0.6,
+    title.size = 1.2,
+    outer.margins = c(0.01, 0.01, 0.01, 0.01),
+    asp = 0
+  )
+```
+
+```{r}
+# High RMP + High POC
+
+poc_hazards <- filter(mc, P_PRMP >= 80 & PEOPCOLORPCT >= 0.65)
+
+# High POC
+
+poc <- filter(mc, PEOPCOLORPCT >= 0.65 & P_PRMP < 80)
+
+# High RMP
+hazards <- filter(mc, P_PRMP >= 80 & PEOPCOLORPCT < 0.65)
+
+# NA
+
+low <- filter(mc, P_PRMP < 80 & PEOPCOLORPCT < 0.65)
+```
+
+```{r}
+#| fig-width: 10
+#| fig-height: 7
+
+tm_shape(mc) +
+  tm_borders(lwd = 2) +
+  tm_shape(poc_hazards) +
+  tm_polygons(fill = "#e84614") +
+  tm_shape(poc) +
+  tm_polygons(fill = "#02bea5") +
+  tm_shape(hazards) +
+  tm_polygons(fill = "#f5a255") +
+  tm_shape(low) +
+  tm_polygons(fill = "#affff7") +
+  tm_shape(mc_cities) +
+  tm_bubbles(size = .45, col = "black", fill = "yellow") +
+  tm_add_legend(
+    type = "polygons",
+    title = "RMP Proximity and People of Color",
+    fill = c("#e84614", "#02bea5", "#f5a255", "#affff7"),
+    labels = c(
+      "High RMP + High People of Color",
+      "High People of Color Only",
+      "High RMP Only",
+      "Neither"
+    )
+  ) +
+  tm_add_legend(
+    type = "symbols",
+    title = "",
+    fill = "yellow",
+    col = "black",
+    labels = "Communities"
+  ) +
+  tm_scalebar(position = c("left", "bottom")) +
+  tm_compass(position = c("right", "top")) +
+  tm_title_out(
+    text = "Racial Demographics and Proximity to Hazardous Materials Facilities in Monterey County",
+    fontface = "bold",
+    position = tm_pos_out(cell.h = "center", cell.v = "top", pos.h = "center")
+  ) +
+  tm_layout(
+    text.fontfamily = "sans",
+    style = "natural",
+    bg.color = "grey95",
+    frame = TRUE,
+    legend.text.size = 0.58,
+    legend.title.size = 0.7,
+    outer.margins = c(0.01, 0.01, 0.01, 0.01),
+    asp = 0
+  )
 ```
