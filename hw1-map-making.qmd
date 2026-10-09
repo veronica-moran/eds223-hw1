@@ -334,3 +334,109 @@ mc <- monterey |>
     P_LOWINCPCT
   )
 ```
+
+```{r}
+# Checking CRS for EJ dataset
+
+st_crs(mc)
+```
+
+```{r}
+# Creating st_point for cities with higher populations in Monterey County
+
+salinas_p <- st_point(c(-121.632, 36.694))
+monterey_p <- st_point(c(-121.880, 36.592))
+seaside_p <- st_point(c(-121.819, 36.622))
+marina_p <- st_point(c(-121.789, 36.682))
+soledad_p <- st_point(c(-121.322, 36.430))
+greenfield_p <- st_point(c(-121.245, 36.325))
+kc_p <- st_point(c(-121.127, 36.216))
+cbts_p <- st_point(c(-121.922, 36.554))
+cv_p <- st_point(c(-121.726, 36.484))
+bradley_p <- st_point(c(-120.869, 35.863))
+ml_p <- st_point(c(-121.785, 36.805))
+pajaro_p <- st_point(c(-121.741, 36.902))
+castroville_p <- st_point(c(-121.752, 36.766))
+chualar_p <- st_point(c(-121.516, 36.570))
+bs_p <- st_point(c(-121.808, 36.270))
+sl_p <- st_point(c(-121.021, 36.128))
+sa_p <- st_point(c(-120.906, 36.020))
+jolon_p <- st_point(c(-121.176, 35.971))
+spreckels_p <- st_point(c(-121.647, 36.622))
+spence_p <- st_point(c(-121.554, 36.623))
+gonzalez_p <- st_point(c(-121.439, 36.516))
+ch_p <- st_point(c(-121.934, 36.507))
+hc_p <- st_point(c(-121.869, 36.534))
+rtg <- st_point(c(-121.804, 36.527))
+pb_p <- st_point(c(-121.944, 36.587))
+pg_p <- st_point(c(-121.920, 36.619))
+cdt_p <- st_point(c(-121.765, 36.569))
+sb_p <- st_point(c(-121.708, 36.569))
+sv_p <- st_point(c(-121.699, 36.603))
+eg_p <- st_point(c(-121.735, 36.654))
+prunedale_p <- st_point(c(-121.655, 36.803))
+aromas_p <- st_point(c(-121.664, 36.865))
+greenfield_p <- st_point(c(-121.246, 36.320))
+pine_p <- st_point(c(-121.150, 36.181))
+cvh_p <- st_point(c(-121.937, 36.482))
+
+
+# Adding coordinate reference system
+
+mc_points <- st_sfc(
+  c(
+    salinas_p,
+    monterey_p,
+    seaside_p,
+    marina_p,
+    soledad_p,
+    greenfield_p,
+    kc_p,
+    cbts_p,
+    cv_p,
+    bradley_p,
+    ml_p,
+    pajaro_p,
+    castroville_p,
+    chualar_p,
+    bs_p,
+    sl_p,
+    sa_p,
+    jolon_p,
+    spreckels_p,
+    spence_p,
+    gonzalez_p,
+    hc_p,
+    rtg,
+    pb_p,
+    pg_p,
+    cdt_p,
+    sb_p,
+    sv_p,
+    eg_p,
+    prunedale_p,
+    aromas_p,
+    greenfield_p,
+    pine_p,
+    cvh_p
+  ),
+  crs = 4326
+)
+```
+
+```{r}
+# Linguistic and high p_RMP
+# red
+
+tm_shape(mc) +
+  tm_polygons(
+    fill = "P_LINGISOPCT"
+  ) +
+  tm_shape(high_h) +
+  tm_borders(
+    col = "darkorange",
+    lwd = .75
+  ) +
+  tm_shape(mc_cities) +
+  tm_dots(size = .25)
+```
