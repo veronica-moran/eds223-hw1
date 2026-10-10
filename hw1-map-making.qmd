@@ -1,5 +1,6 @@
 
 ```{r}
+#| include: false
 library(tidyverse)
 library(sf)
 library(here)
@@ -7,11 +8,47 @@ library(stars)
 library(tmap)
 ```
 
-# Research Question
-How does potential exposure to wastewater discharge
+## Background 
+The Environmental Protection Agency (EPA) developed [EJSCREEN](https://19january2021snapshot.epa.gov/ejscreen_.html), an environmental justice (EJ) mapping and screening tool that combines environmental and demographic indicators. This analysis uses the EJSCREEN dataset to examine potential environmental justice issues in Monterey County. 
 
+These maps compare proximity to Risk Management Program (RMP) facilities with the distribution of people of color (POC) and limited english-speaking households. RMP facilities handle large quantities of extremely hazardous regulated substances and are required by the EPA to develop a Risk Management Plan for preventing and responding to accidental chemical releases. The maps examine whether areas with higher RMP facility proximity overlap with communities that may have greater environmental justice vulnerability based on demographic characteristics.
+
+## Data
+
+The analysis uses an EJSCREEN [dataset](https://drive.google.com/file/d/1nG6Nj1bXfzQFOVMO8Km3eNy4SWu1YcIQ/view) originally downloaded from the EPA website. The demographic indicators in EJSCREEN are based on the U.S. Census Bureau’s American Community Survey (ACS) 2017–2021 5-year Summary.
+
+Demographic and Environmental Indicators:
+- Percentage of people of color (`PEOPCOLORPCT`)
+- Limited english-speaking households percentile (`P_LINGISOPCT`)
+- RMP facility percentile (`P_PRMP`)
+
+## Methods
+
+EJSCREEN data were filtered to Monterey County and to Census block groups with a reported population. Coordinates for selected communities in Monterey County were stored in a simple feature layer and transformed to match the Coordinate Reference System (CRS) of the EJSCREEN dataset.
+
+For the limited english-speaking households map, Census block groups were symbolized by `P_LINGISOPCT`, and Census block groups with `P_PRMP >= 90` were outlined to identify areas with high RMP facility proximity.
+
+For the POC map, Census block groups were divided into four categories based on whether they met the thresholds for high RMP facility proximity, defined as the 90th percentile and above (P_PRMP >= 90), and a high percentage of people of color, defined as 65% or above (PEOPCOLORPCT >= 0.65).
+
+The 90th percentile threshold was selected as a more conservative cutoff, informed by EJSCREEN documentation that identifies the 80th percentile as a level that may warrant further review [ejscreen].
+
+The 65% threshold was also selected as a more conservative cutoff, an analysis of the 2020 census conducted by the Brookings Institution [Frey], defines a group as highly represented if their share of the area population is larger than their share of the national population. The population of POC in the United States is above 40% [Frey]. 
+
+- High percentage of POC and high RMP facility proximity
+  (`P_PRMP >= 90 & PEOPCOLORPCT >= 0.65`)
+- High percentage of POC only
+  (`PEOPCOLORPCT >= 0.65 & P_PRMP < 90`)
+- High proportion of RMP facility proximity
+  (`P_PRMP >= 90 & PEOPCOLORPCT < 0.65`)
+- Neither high POC percentage or high RMP proximity
+  (`P_PRMP < 90 & PEOPCOLORPCT < 0.65`)
 
 ```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| output: false
+
 # Reading in data
 ejscreen <- sf::st_read(here::here(
   "data",
@@ -20,328 +57,36 @@ ejscreen <- sf::st_read(here::here(
 ))
 
 # Filtering to Monterey County
-monterey <- ejscreen %>%
+mc <- ejscreen %>%
   dplyr::filter(CNTY_NAME %in% c("Monterey County"))
-```
 
-```{r}
-# Filtering to columns to explore
-mc <- monterey |>
-  filter(ACSTOTPOP > 0) |>
-  select(
-    ID,
-    ACSTOTPOP,
-    AREALAND,
-    P_PM25,
-    P_OZONE,
-    P_DSLPM,
-    P_CANCER,
-    P_RESP,
-    P_RSEI_AIR,
-    P_PTRAF,
-    P_LDPNT,
-    P_PNPL,
-    P_PRMP,
-    P_PTSDF,
-    P_UST,
-    P_PWDIS,
-    DEMOGIDX_2,
-    PEOPCOLORPCT,
-    P_LINGISOPCT,
-    P_LOWINCPCT
-  )
-```
-
-
-```{r}
-# Exploring graphs of columns
-
-tm_shape(mc) +
-  tm_polygons(fill = "ACSTOTPOP")
-
-tm_shape(mc) +
-  tm_polygons(fill = "AREALAND")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_PM25")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_OZONE")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_DSLPM")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_CANCER")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_RESP")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_RSEI_AIR")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_PTRAF")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_LDPNT")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_PNPL")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_PRMP")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_PTSDF")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_UST")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_PWDIS")
-
-tm_shape(mc) +
-  tm_polygons(fill = "DEMOGIDX_2")
-
-tm_shape(mc) +
-  tm_polygons(fill = "PEOPCOLORPCT")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_LINGISOPCT")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_LOWINCPCT")
-```
-
-
-```{r}
-# Narrowed down columns to keep exploring
-
-tm_shape(mc) +
-  tm_polygons(fill = "ACSTOTPOP")
-
-tm_shape(mc) +
-  tm_polygons(fill = "AREALAND")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_PWDIS")
-
-tm_shape(mc) +
-  tm_polygons(fill = "DEMOGIDX_2")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_PTRAF")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_PRMP")
-
-tm_shape(mc) +
-  tm_polygons(fill = "PEOPCOLORPCT")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_LINGISOPCT")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_LOWINCPCT")
-```
-
-```{r}
-# Narrowed down columns of interest
-
-tm_shape(mc) +
-  tm_polygons(fill = "ACSTOTPOP")
-
-tm_shape(mc) +
-  tm_polygons(fill = "AREALAND")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_PWDIS")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_PRMP")
-
-tm_shape(mc) +
-  tm_polygons(fill = "DEMOGIDX_2")
-
-tm_shape(mc) +
-  tm_polygons(fill = "PEOPCOLORPCT")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_LINGISOPCT")
-
-tm_shape(mc) +
-  tm_polygons(fill = "P_LOWINCPCT")
-```
-
-
-```{r}
-# Creating Scatterplots to analyze relationships
-
-ggplot(
-  data = mc,
-  mapping = aes(
-    x = DEMOGIDX_2,
-    y = P_PWDIS
-  )
-) +
-  geom_point()
-```
-
-```{r}
-ggplot(
-  data = mc,
-  mapping = aes(
-    x = PEOPCOLORPCT,
-    y = P_PWDIS
-  )
-) +
-  geom_point()
-```
-
-```{r}
-ggplot(
-  data = mc,
-  mapping = aes(
-    x = P_LINGISOPCT,
-    y = P_PWDIS
-  )
-) +
-  geom_point()
-```
-
-```{r}
-ggplot(
-  data = mc,
-  mapping = aes(
-    x = P_LOWINCPCT,
-    y = P_PWDIS
-  )
-) +
-  geom_point()
-```
-
-```{r}
-ggplot(
-  data = mc,
-  mapping = aes(
-    x = DEMOGIDX_2,
-    y = P_PRMP
-  )
-) +
-  geom_point()
-```
-
-```{r}
-ggplot(
-  data = mc,
-  mapping = aes(
-    x = PEOPCOLORPCT,
-    y = P_PRMP
-  )
-) +
-  geom_point()
-```
-
-```{r}
-ggplot(
-  data = mc,
-  mapping = aes(
-    x = P_LINGISOPCT,
-    y = P_PRMP
-  )
-) +
-  geom_point()
-```
-
-```{r}
-ggplot(
-  data = mc,
-  mapping = aes(
-    x = P_LOWINCPCT,
-    y = P_PRMP
-  )
-) +
-  geom_point()
-```
-
-
-```{r}
-# Narrowed down to environmental variable of interest
-# Highest to lowest relationship:
-# DEMOGIDX_2, PEOPCOLORPCT, P_LOWINCPCT
-
-ggplot(
-  data = mc,
-  mapping = aes(
-    x = DEMOGIDX_2,
-    y = P_PRMP
-  )
-) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE)
-```
-
-```{r}
-ggplot(
-  data = mc,
-  mapping = aes(
-    x = PEOPCOLORPCT,
-    y = P_PRMP
-  )
-) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE)
-```
-
-```{r}
-ggplot(
-  data = mc,
-  mapping = aes(
-    x = P_LOWINCPCT,
-    y = P_PRMP
-  )
-) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE)
-```
-
-```{r}
-ggplot(
-  data = mc,
-  mapping = aes(
-    x = P_LINGISOPCT,
-    y = P_PRMP
-  )
-) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE)
-```
-
-
-```{r}
-# Filtering to columns of interest
-mc <- monterey |>
-  filter(ACSTOTPOP > 0) |>
-  select(
-    ID,
-    ACSTOTPOP,
-    AREALAND,
-    P_PRMP,
-    DEMOGIDX_2,
-    PEOPCOLORPCT,
-    P_LINGISOPCT,
-    P_LOWINCPCT
-  )
-```
-
-```{r}
 # Checking CRS for EJ dataset
 
 st_crs(mc)
 ```
 
 ```{r}
+#| echo: false
+# Filtering to columns of interest
+mc <- mc |>
+  filter(ACSTOTPOP > 0) |>
+  select(
+    ID,
+    ACSTOTPOP,
+    AREALAND,
+    P_PRMP,
+    PEOPCOLORPCT,
+    P_LINGISOPCT,
+  )
+```
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-height: 9
+#| fig-width: 7
+#| fig-align: center
 # Creating st_point for cities with higher populations in Monterey County
 
 salinas_p <- st_point(c(-121.632, 36.694))
@@ -376,7 +121,6 @@ sv_p <- st_point(c(-121.699, 36.603))
 eg_p <- st_point(c(-121.735, 36.654))
 prunedale_p <- st_point(c(-121.655, 36.803))
 aromas_p <- st_point(c(-121.664, 36.865))
-greenfield_p <- st_point(c(-121.246, 36.320))
 pine_p <- st_point(c(-121.150, 36.181))
 cvh_p <- st_point(c(-121.937, 36.482))
 
@@ -406,7 +150,7 @@ mc_points <- st_sfc(
     spreckels_p,
     spence_p,
     gonzalez_p,
-    hc_p,
+    ch_p,
     rtg,
     pb_p,
     pg_p,
@@ -416,7 +160,6 @@ mc_points <- st_sfc(
     eg_p,
     prunedale_p,
     aromas_p,
-    greenfield_p,
     pine_p,
     cvh_p
   ),
@@ -425,11 +168,14 @@ mc_points <- st_sfc(
 ```
 
 ```{r}
-# Transforming the CRS of Monterey county cities dataframe to match the CRS of the Monterey dataframe
+#| echo: false
+# Transforming the CRS of Monterey county cities dataframe to match the CRS of the Monterey data
 mc_cities <- st_transform(mc_points, crs = st_crs(mc))
 ```
 
 ```{r}
+#| echo: false
+#| output: false
 # Verifying CRS match
 if (st_crs(mc_cities) == st_crs(mc)) {
   print("it's a match!")
@@ -438,43 +184,128 @@ if (st_crs(mc_cities) == st_crs(mc)) {
 }
 ```
 
+```{r}
+#| echo: false
+# Linguistic isolation and high RMP proximity map
+# Limited english-speaking households
 
+high_h <- mc |>
+  filter(P_PRMP >= 90)
+
+
+# Filtering for racial demographics and hazard that meet conditions of the thresholds and where they overlap
+
+# High RMP + High POC
+
+poc_hazards <- filter(mc, P_PRMP >= 90 & PEOPCOLORPCT >= 0.65)
+
+# High POC
+
+poc <- filter(mc, PEOPCOLORPCT >= 0.65 & P_PRMP < 90)
+
+# High RMP
+hazards <- filter(mc, P_PRMP >= 90 & PEOPCOLORPCT < 0.65)
+
+# POC percent below threshold and RMP facility below threshold
+
+low <- filter(mc, P_PRMP < 90 & PEOPCOLORPCT < 0.65)
+```
+
+## Results
+
+Census block groups with high proximity to RMP facilities are located in the northeastern area of Monterey County. Many of these groups contain high percentiles of limited english-speaking households.
 
 ```{r}
-#| fig-width: 10
-#| fig-height: 7
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-height: 5
+#| fig-width: 5.5
+#| fig-align: center
 
-# Linguistics map 2nd version
-
-# Linguistic isolation and high RMP proximity map
-high_h <- mc |>
-  filter(P_PRMP >= 80)
-
-tm_shape(mc) +
+map_in <-
+  tm_shape(mc, bbox = st_bbox(poc_hazards)) +
   tm_polygons(
     fill = "P_LINGISOPCT",
-    fill.legend = tm_legend(
-      title = "Limited English-Speaking Households Percentile",
-      frame = FALSE,
-      bg = FALSE
-    )
+    legend.show = FALSE
   ) +
+  tm_shape(mc) +
+  tm_borders(lwd = .3) +
   tm_shape(high_h) +
   tm_borders(
     col = "orangered3",
-    lwd = 1
+    lwd = 1.25
   ) +
   tm_shape(mc_cities) +
   tm_bubbles(
-    size = .4,
+    size = .35,
     fill = "deepskyblue1",
     col = "black"
+  ) +
+  tm_scalebar(position = c("left", "bottom")) +
+  tm_compass(position = c("right", "top")) +
+  tm_layout(
+    text.fontfamily = "sans",
+    style = "natural",
+    bg.color = "grey95",
+    frame = TRUE,
+    legend.text.size = 0.9,
+    legend.title.size = 0.7
+  )
+
+map_out <-
+  tm_shape(mc) +
+  tm_polygons(
+    fill = "P_LINGISOPCT",
+    fill.scale = tm_scale_intervals(
+      style = "fixed",
+      breaks = c(0, 20, 40, 60, 80, 100),
+      values = c(
+        "darkgreen",
+        "seagreen3",
+        "darkseagreen",
+        "palegreen1",
+        "lightyellow"
+      )
+    ),
+    legend.show = FALSE
+  ) +
+  tm_shape(mc) +
+  tm_borders(lwd = .3) +
+  tm_shape(high_h) +
+  tm_borders(
+    col = "orangered3",
+    lwd = 1.25
+  ) +
+  tm_shape(mc_cities) +
+  tm_bubbles(
+    size = .25,
+    col = "black",
+    fill = "deepskyblue1"
+  ) +
+  tm_add_legend(
+    type = "polygons",
+    title = "Limited English-Speaking Households Percentile",
+    fill = c(
+      "darkgreen",
+      "seagreen3",
+      "darkseagreen",
+      "palegreen1",
+      "lightyellow"
+    ),
+    labels = c(
+      "80 - 100",
+      "60 - 79",
+      "40 - 59",
+      "20 - 39",
+      "0 - 19"
+    )
   ) +
   tm_add_legend(
     type = "lines",
     title = "",
     col = "orangered3",
-    labels = "High RMP Proximity Census Blocks"
+    labels = "High RMP Proximity Census Block Groups"
   ) +
   tm_add_legend(
     type = "symbols",
@@ -483,67 +314,94 @@ tm_shape(mc) +
     col = "black",
     labels = "Communities"
   ) +
+  tm_layout(
+    text.fontfamily = "sans",
+    style = "natural",
+    bg.color = "grey95",
+    frame = TRUE
+  )
+```
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-height: 5.75
+#| fig-width: 5.75
+#| fig-align: center
+
+tmap_arrange(
+  map_in,
+  map_out,
+  ncol = 2
+)
+```
+
+Census block groups with high RMP facility proximity overlap with populations that are at least 65% people of color. Many of these areas are located in northern and northeastern Monterey County. In southern and northwestern Monterey County RMP facility proximity and the percentage of people of color fall below the threshold.
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-height: 5
+#| fig-width: 6
+#| fig-align: center
+# Racial demographics and high RMP facility proximity map
+map_zoom <-
+  tm_shape(mc, bbox = st_bbox(poc_hazards)) +
+  tm_polygons(fill = NA, col = "black") +
+  tm_shape(poc_hazards) +
+  tm_polygons(fill = "orangered1", col = NULL) +
+  tm_shape(poc) +
+  tm_polygons(fill = "mediumaquamarine", col = NULL) +
+  tm_shape(hazards) +
+  tm_polygons(fill = "rosybrown2", col = NULL) +
+  tm_shape(low) +
+  tm_polygons(fill = "cadetblue1", col = NULL) +
+  tm_shape(mc) +
+  tm_borders(
+    col = "black",
+    lwd = .35
+  ) +
+  tm_shape(mc_cities) +
+  tm_bubbles(size = .35, col = "black", fill = "yellow") +
   tm_scalebar(position = c("left", "bottom")) +
   tm_compass(position = c("right", "top")) +
-  tm_title_out(
-    text = "Limited English-Speaking Households and Proximity to Hazardous Materials Facilities in Monterey County",
-    fontface = "bold",
-    position = tm_pos_out(
-      cell.h = "center",
-      cell.v = "top",
-      pos.h = "center"
-    )
-  ) +
   tm_layout(
     text.fontfamily = "sans",
     style = "natural",
     bg.color = "grey95",
     frame = TRUE,
-    legend.text.size = 0.58,
-    legend.title.size = 0.6,
-    title.size = 1.2,
-    outer.margins = c(0.01, 0.01, 0.01, 0.01),
-    asp = 0
+    legend.text.size = 0.9,
+    legend.title.size = 0.7
   )
-```
 
-```{r}
-# High RMP + High POC
+# Racial demographics and high RMP facility proximity map
 
-poc_hazards <- filter(mc, P_PRMP >= 80 & PEOPCOLORPCT >= 0.65)
-
-# High POC
-
-poc <- filter(mc, PEOPCOLORPCT >= 0.65 & P_PRMP < 80)
-
-# High RMP
-hazards <- filter(mc, P_PRMP >= 80 & PEOPCOLORPCT < 0.65)
-
-# NA
-
-low <- filter(mc, P_PRMP < 80 & PEOPCOLORPCT < 0.65)
-```
-
-```{r}
-#| fig-width: 10
-#| fig-height: 7
-
-tm_shape(mc) +
-  tm_borders(lwd = 2) +
+map_far <-
+  tm_shape(mc) +
+  tm_polygons(fill = NA, col = "black") +
   tm_shape(poc_hazards) +
-  tm_polygons(fill = "#e84614") +
+  tm_polygons(fill = "orangered1", col = NULL) +
   tm_shape(poc) +
-  tm_polygons(fill = "#02bea5") +
+  tm_polygons(fill = "mediumaquamarine", col = NULL) +
   tm_shape(hazards) +
-  tm_polygons(fill = "#f5a255") +
+  tm_polygons(fill = "rosybrown2", col = NULL) +
   tm_shape(low) +
-  tm_polygons(fill = "#affff7") +
+  tm_polygons(fill = "cadetblue1", col = NULL) +
+  tm_shape(mc) +
+  tm_borders(
+    col = "black",
+    lwd = .35
+  ) +
   tm_shape(mc_cities) +
-  tm_bubbles(size = .45, col = "black", fill = "yellow") +
+  tm_bubbles(size = .25, col = "black", fill = "yellow") +
+  tm_scalebar(position = c("right", "bottom")) +
+  tm_compass(position = c("right", "top")) +
   tm_add_legend(
     type = "polygons",
     title = "RMP Proximity and People of Color",
-    fill = c("#e84614", "#02bea5", "#f5a255", "#affff7"),
+    fill = c("orangered1", "mediumaquamarine", "rosybrown2", "cadetblue1"),
     labels = c(
       "High RMP + High People of Color",
       "High People of Color Only",
@@ -558,21 +416,33 @@ tm_shape(mc) +
     col = "black",
     labels = "Communities"
   ) +
-  tm_scalebar(position = c("left", "bottom")) +
-  tm_compass(position = c("right", "top")) +
-  tm_title_out(
-    text = "Racial Demographics and Proximity to Hazardous Materials Facilities in Monterey County",
-    fontface = "bold",
-    position = tm_pos_out(cell.h = "center", cell.v = "top", pos.h = "center")
-  ) +
   tm_layout(
     text.fontfamily = "sans",
     style = "natural",
     bg.color = "grey95",
-    frame = TRUE,
-    legend.text.size = 0.58,
-    legend.title.size = 0.7,
-    outer.margins = c(0.01, 0.01, 0.01, 0.01),
-    asp = 0
+    frame = TRUE
   )
 ```
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-height: 5.75
+#| fig-width: 5.75
+#| fig-align: center
+
+tmap_arrange(
+  map_zoom,
+  map_far,
+  ncol = 2
+)
+```
+
+## Conclusion
+
+These maps identify potential environmental justice concerns in Monterey County, particularly in the northeastern Monterey County. Communities with higher percentiles of limited english speaking households and higher percentages of people of color overlap with Census block groups that have high RMP facility proximity. Many Census block groups with high RMP facility proximity have limited english-speaking household percentiles of 60 or higher and populations that are at least 65% people of color. Areas with lower RMP facility proximity generally have communities with lower percentiles of limited english-speaking households and lower percentages of people of color. These patterns do not measure exposure or health effects, but they identify areas where higher RMP facility proximity overlaps with potentially vulnerable communities.
+
+## References
+
+
