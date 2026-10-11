@@ -9,15 +9,16 @@ library(tmap)
 ```
 
 ## Background 
-The Environmental Protection Agency (EPA) developed [EJSCREEN](https://19january2021snapshot.epa.gov/ejscreen_.html), an environmental justice (EJ) mapping and screening tool that combines environmental and demographic indicators. This analysis uses the EJSCREEN dataset to examine potential environmental justice issues in Monterey County. 
+The Environmental Protection Agency (EPA) developed [EJSCREEN](https://19january2021snapshot.epa.gov/ejscreen_.html), an environmental justice (EJ) mapping and screening tool that combines environmental and demographic indicators[1]. This analysis uses the EJSCREEN dataset to examine potential environmental justice issues in Monterey County. 
 
-These maps compare proximity to Risk Management Program (RMP) facilities with the distribution of people of color (POC) and limited english-speaking households. RMP facilities handle large quantities of extremely hazardous regulated substances and are required by the EPA to develop a Risk Management Plan for preventing and responding to accidental chemical releases. The maps examine whether areas with higher RMP facility proximity overlap with communities that may have greater environmental justice vulnerability based on demographic characteristics.
+These maps compare proximity to Risk Management Program (RMP) facilities with the distribution of people of color (POC) and limited english-speaking households. RMP facilities handle large quantities of extremely hazardous regulated substances and are required by the EPA to develop a Risk Management Plan for preventing and responding to accidental chemical releases [2]. The maps examine whether areas with higher RMP facility proximity overlap with communities that may have greater environmental justice vulnerability based on demographic characteristics.
 
 ## Data
 
 The analysis uses an EJSCREEN [dataset](https://drive.google.com/file/d/1nG6Nj1bXfzQFOVMO8Km3eNy4SWu1YcIQ/view) originally downloaded from the EPA website. The demographic indicators in EJSCREEN are based on the U.S. Census Bureau’s American Community Survey (ACS) 2017–2021 5-year Summary.
 
 Demographic and Environmental Indicators:
+
 - Percentage of people of color (`PEOPCOLORPCT`)
 - Limited english-speaking households percentile (`P_LINGISOPCT`)
 - RMP facility percentile (`P_PRMP`)
@@ -28,20 +29,33 @@ EJSCREEN data were filtered to Monterey County and to Census block groups with a
 
 For the limited english-speaking households map, Census block groups were symbolized by `P_LINGISOPCT`, and Census block groups with `P_PRMP >= 90` were outlined to identify areas with high RMP facility proximity.
 
-For the POC map, Census block groups were divided into four categories based on whether they met the thresholds for high RMP facility proximity, defined as the 90th percentile and above (P_PRMP >= 90), and a high percentage of people of color, defined as 65% or above (PEOPCOLORPCT >= 0.65).
+For the POC map, Census block groups were divided into four categories based on whether they met the selected thresholds.
 
-The 90th percentile threshold was selected as a more conservative cutoff, informed by EJSCREEN documentation that identifies the 80th percentile as a level that may warrant further review [ejscreen].
+* High RMP facility proximity
+  90th percentile and above (`P_PRMP >= 90`)
 
-The 65% threshold was also selected as a more conservative cutoff, an analysis of the 2020 census conducted by the Brookings Institution [Frey], defines a group as highly represented if their share of the area population is larger than their share of the national population. The population of POC in the United States is above 40% [Frey]. 
+* High percentage of people of color
+  65% or above (`PEOPCOLORPCT >= 0.65`)
 
-- High percentage of POC and high RMP facility proximity
+The 90th percentile threshold was selected as a more conservative cutoff, informed by EJSCREEN documentation that identifies the 80th percentile as a level that may warrant further review [3].
+
+The 65% threshold was also selected as a more conservative cutoff. An analysis of the 2020 Census conducted by the Brookings Institution [4] defines a group as highly represented if its share of the area population is larger than its share of the national population. The population of POC in the United States is above 40% [4]. 
+
+- High RMP facility proximity and high percentage of POC and 
+  
   (`P_PRMP >= 90 & PEOPCOLORPCT >= 0.65`)
+
 - High percentage of POC only
+  
   (`PEOPCOLORPCT >= 0.65 & P_PRMP < 90`)
+
 - High proportion of RMP facility proximity
+ 
   (`P_PRMP >= 90 & PEOPCOLORPCT < 0.65`)
-- Neither high POC percentage or high RMP proximity
-  (`P_PRMP < 90 & PEOPCOLORPCT < 0.65`)
+
+- Neither high POC percentage or high RMP facility proximity
+ 
+  (`PEOPCOLORPCT < 0.65 & P_PRMP < 90`)
 
 ```{r}
 #| echo: false
@@ -193,34 +207,31 @@ high_h <- mc |>
   filter(P_PRMP >= 90)
 
 
-# Filtering for racial demographics and hazard that meet conditions of the thresholds and where they overlap
+# Filtering for racial demographics and RMP facility proximity based on the selected thresholds
 
-# High RMP + High POC
-
+# High RMP facility proximity and high percentage of POC
 poc_hazards <- filter(mc, P_PRMP >= 90 & PEOPCOLORPCT >= 0.65)
 
-# High POC
-
+# High percentage of POC only
 poc <- filter(mc, PEOPCOLORPCT >= 0.65 & P_PRMP < 90)
 
-# High RMP
+# High RMP facility proximity only
 hazards <- filter(mc, P_PRMP >= 90 & PEOPCOLORPCT < 0.65)
 
-# POC percent below threshold and RMP facility below threshold
-
-low <- filter(mc, P_PRMP < 90 & PEOPCOLORPCT < 0.65)
+# Neither high POC percentage nor high RMP facility proximity
+low <- filter(mc, PEOPCOLORPCT < 0.65 & P_PRMP < 90)
 ```
 
 ## Results
 
-Census block groups with high proximity to RMP facilities are located in the northeastern area of Monterey County. Many of these groups contain high percentiles of limited english-speaking households.
+Census block groups with high proximity to RMP facilities above 90th percentile are located in northern Monterey County. Many of these Census block groups are above the 60th percentile for limited english-speaking households.
 
 ```{r}
 #| echo: false
 #| message: false
 #| warning: false
 #| fig-height: 5
-#| fig-width: 5.5
+#| fig-width: 6
 #| fig-align: center
 
 map_in <-
@@ -247,7 +258,9 @@ map_in <-
   tm_layout(
     text.fontfamily = "sans",
     style = "natural",
-    bg.color = "grey95",
+    bg.color = "seashell",
+    outer.bg = TRUE,
+    outer.bg.color = "seashell",
     frame = TRUE,
     legend.text.size = 0.9,
     legend.title.size = 0.7
@@ -283,6 +296,8 @@ map_out <-
     col = "black",
     fill = "deepskyblue1"
   ) +
+  tm_scalebar(position = c("right", "bottom")) +
+  tm_compass(position = c("right", "top")) +
   tm_add_legend(
     type = "polygons",
     title = "Limited English-Speaking Households Percentile",
@@ -299,25 +314,33 @@ map_out <-
       "40 - 59",
       "20 - 39",
       "0 - 19"
-    )
+    ),
+    bg.color = "seashell",
+    bg.alpha = 1
   ) +
   tm_add_legend(
     type = "lines",
     title = "",
     col = "orangered3",
-    labels = "High RMP Proximity Census Block Groups"
+    labels = "High RMP Facility Proximity Census Block Groups",
+    bg.color = "seashell",
+    bg.alpha = 1
   ) +
   tm_add_legend(
     type = "symbols",
     title = "",
     fill = "deepskyblue1",
     col = "black",
-    labels = "Communities"
+    labels = "Communities",
+    bg.color = "seashell",
+    bg.alpha = 1
   ) +
   tm_layout(
     text.fontfamily = "sans",
     style = "natural",
-    bg.color = "grey95",
+    bg.color = "seashell",
+    outer.bg = TRUE,
+    outer.bg.color = "seashell",
     frame = TRUE
   )
 ```
@@ -327,17 +350,19 @@ map_out <-
 #| message: false
 #| warning: false
 #| fig-height: 5.75
-#| fig-width: 5.75
+#| fig-width: 7
 #| fig-align: center
 
 tmap_arrange(
   map_in,
   map_out,
-  ncol = 2
+  ncol = 2,
+  asp = 0,
+  outer.margins = c(0.05, 0.06, 0.05, 0.06)
 )
 ```
 
-Census block groups with high RMP facility proximity overlap with populations that are at least 65% people of color. Many of these areas are located in northern and northeastern Monterey County. In southern and northwestern Monterey County RMP facility proximity and the percentage of people of color fall below the threshold.
+Census block groups with high RMP facility proximity overlap with populations that are at least 65% people of color. Most of these Census block groups are located in northern Monterey County. In coastal and southern Monterey County RMP facility proximity and the percentage of people of color fall below the threshold.
 
 ```{r}
 #| echo: false
@@ -357,7 +382,7 @@ map_zoom <-
   tm_shape(hazards) +
   tm_polygons(fill = "rosybrown2", col = NULL) +
   tm_shape(low) +
-  tm_polygons(fill = "cadetblue1", col = NULL) +
+  tm_polygons(fill = "lavender", col = NULL) +
   tm_shape(mc) +
   tm_borders(
     col = "black",
@@ -370,8 +395,9 @@ map_zoom <-
   tm_layout(
     text.fontfamily = "sans",
     style = "natural",
-    bg.color = "grey95",
+    bg.color = "seashell",
     frame = TRUE,
+    outer.bg.color = "seashell",
     legend.text.size = 0.9,
     legend.title.size = 0.7
   )
@@ -388,7 +414,7 @@ map_far <-
   tm_shape(hazards) +
   tm_polygons(fill = "rosybrown2", col = NULL) +
   tm_shape(low) +
-  tm_polygons(fill = "cadetblue1", col = NULL) +
+  tm_polygons(fill = "lavender", col = NULL) +
   tm_shape(mc) +
   tm_borders(
     col = "black",
@@ -401,48 +427,60 @@ map_far <-
   tm_add_legend(
     type = "polygons",
     title = "RMP Proximity and People of Color",
-    fill = c("orangered1", "mediumaquamarine", "rosybrown2", "cadetblue1"),
+    fill = c("orangered1", "mediumaquamarine", "rosybrown2", "lavender"),
     labels = c(
-      "High RMP + High People of Color",
+      "High RMP Facility Proximity + High People of Color",
       "High People of Color Only",
       "High RMP Only",
       "Neither"
-    )
+    ),
+    bg.color = "seashell",
+    bg.alpha = 1
   ) +
   tm_add_legend(
     type = "symbols",
     title = "",
     fill = "yellow",
     col = "black",
-    labels = "Communities"
+    labels = "Communities",
+    bg.color = "seashell",
+    bg.alpha = 1
   ) +
   tm_layout(
     text.fontfamily = "sans",
     style = "natural",
-    bg.color = "grey95",
-    frame = TRUE
+    bg.color = "seashell",
+    frame = TRUE,
+    outer.bg.color = "seashell"
   )
 ```
-
 ```{r}
 #| echo: false
 #| message: false
 #| warning: false
 #| fig-height: 5.75
-#| fig-width: 5.75
+#| fig-width: 7
 #| fig-align: center
 
 tmap_arrange(
   map_zoom,
   map_far,
-  ncol = 2
+  ncol = 2,
+  asp = 0,
+  outer.margins = c(0.05, 0.06, 0.05, 0.06)
 )
 ```
 
 ## Conclusion
 
-These maps identify potential environmental justice concerns in Monterey County, particularly in the northeastern Monterey County. Communities with higher percentiles of limited english speaking households and higher percentages of people of color overlap with Census block groups that have high RMP facility proximity. Many Census block groups with high RMP facility proximity have limited english-speaking household percentiles of 60 or higher and populations that are at least 65% people of color. Areas with lower RMP facility proximity generally have communities with lower percentiles of limited english-speaking households and lower percentages of people of color. These patterns do not measure exposure or health effects, but they identify areas where higher RMP facility proximity overlaps with potentially vulnerable communities.
+These maps identify potential environmental justice concerns in Monterey County, particularly in the northern Monterey County. Communities with higher percentiles of limited english speaking households and higher percentages of people of color overlap with Census block groups that have high RMP facility proximity. Many Census block groups with high RMP facility proximity have limited english-speaking household percentiles of 60 or higher and populations that are at least 65% people of color. The coastal and southern Census block groups have lower RMP facility proximity generally have communities with lower percentiles of limited english-speaking households and lower percentages of people of color. These patterns do not measure exposure or health effects, but they identify areas where higher RMP facility proximity overlaps with potentially vulnerable communities. Further study could examine environmental justice concerns in Monterey County by including factors not captured in the EJSCREEN dataset, such as the population of immigrant farmworkers living in the area. A limitation of this type of analysis is the potential lack of representative or accurate data. Immigrants may be hesitant to share personal information due to fear, privacy concerns, or lack of trust in people or institutions outside of their community.
 
 ## References
 
+[1]. U.S. Environmental Protection Agency. (2021). *Environmental Justice Screening and Mapping Tool: What is EJSCREEN*. (https://19january2021snapshot.epa.gov/ejscreen/what-ejscreen_.html) [Accessed: October 7, 2026]
 
+[2]. U.S. Environmental Protection Agency. (2025, December 4). *Risk Management Program (RMP) Rule Overview*. (https://www.epa.gov/rmp/risk-management-program-rmp-rule-overview) [Accessed: October 7, 2026]
+
+[3]. U.S. Environmental Protection Agency (EPA), 2023. *EJScreen Technical Documentation*.
+
+[4]. Frey, W. H. (2021, August 13). *New 2020 census results show increased diversity countering decade-long declines in America’s white and youth populations*. Brookings Institution. (https://www.brookings.edu/articles/new-2020-census-results-show-increased-diversity-countering-decade-long-declines-in-americas-white-and-youth-populations/) [Accessed: October 9, 2026]
