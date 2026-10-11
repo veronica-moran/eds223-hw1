@@ -20,7 +20,6 @@ The raw dataset was originally obtained from the EPA website and was accessed fr
     EDS-HW1
     ├── data
     │   └── ejscreen
-    ├── hw1-map-making.html
     ├── hw1-map-making.qmd
     └── README.md
 
