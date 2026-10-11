@@ -11,7 +11,7 @@ library(tmap)
 ## Background 
 The Environmental Protection Agency (EPA) developed [EJSCREEN](https://19january2021snapshot.epa.gov/ejscreen_.html), an environmental justice (EJ) mapping and screening tool that combines environmental and demographic indicators[1]. This analysis uses the EJSCREEN dataset to examine potential environmental justice issues in Monterey County. 
 
-These maps compare proximity to Risk Management Program (RMP) facilities with the distribution of people of color (POC) and limited english-speaking households. RMP facilities handle large quantities of extremely hazardous regulated substances and are required by the EPA to develop a Risk Management Plan for preventing and responding to accidental chemical releases [2]. The maps examine whether areas with higher RMP facility proximity overlap with communities that may have greater environmental justice vulnerability based on demographic characteristics.
+These maps compare proximity to Risk Management Program (RMP) facilities with the distribution of people of color (POC) and limited English-speaking households. RMP facilities handle large quantities of extremely hazardous regulated substances and are required by the EPA to develop a Risk Management Plan for preventing and responding to accidental chemical releases [2]. The maps examine whether areas with higher RMP facility proximity overlap with communities that may have greater environmental justice vulnerability based on demographic characteristics.
 
 ## Data
 
@@ -20,14 +20,14 @@ The analysis uses an EJSCREEN [dataset](https://drive.google.com/file/d/1nG6Nj1b
 Demographic and Environmental Indicators:
 
 - Percentage of people of color (`PEOPCOLORPCT`)
-- Limited english-speaking households percentile (`P_LINGISOPCT`)
+- Limited English-speaking households percentile (`P_LINGISOPCT`)
 - RMP facility percentile (`P_PRMP`)
 
 ## Methods
 
 EJSCREEN data were filtered to Monterey County and to Census block groups with a reported population. Coordinates for selected communities in Monterey County were stored in a simple feature layer and transformed to match the Coordinate Reference System (CRS) of the EJSCREEN dataset.
 
-For the limited english-speaking households map, Census block groups were symbolized by `P_LINGISOPCT`, and Census block groups with `P_PRMP >= 90` were outlined to identify areas with high RMP facility proximity.
+For the limited English-speaking households map, Census block groups were symbolized by `P_LINGISOPCT`, and Census block groups with `P_PRMP >= 90` were outlined to identify areas with high RMP facility proximity.
 
 For the POC map, Census block groups were divided into four categories based on whether they met the selected thresholds.
 
@@ -201,7 +201,7 @@ if (st_crs(mc_cities) == st_crs(mc)) {
 ```{r}
 #| echo: false
 # Linguistic isolation and high RMP proximity map
-# Limited english-speaking households
+# Limited English-speaking households
 
 high_h <- mc |>
   filter(P_PRMP >= 90)
@@ -224,7 +224,7 @@ low <- filter(mc, PEOPCOLORPCT < 0.65 & P_PRMP < 90)
 
 ## Results
 
-Census block groups with high proximity to RMP facilities above 90th percentile are located in northern Monterey County. Many of these Census block groups are above the 60th percentile for limited english-speaking households.
+Census block groups with high proximity to RMP facilities above 90th percentile are located in northern Monterey County. Many of these Census block groups are above the 60th percentile for limited English-speaking households.
 
 ```{r}
 #| echo: false
@@ -256,6 +256,7 @@ map_in <-
   tm_scalebar(position = c("left", "bottom")) +
   tm_compass(position = c("right", "top")) +
   tm_layout(
+    main.title = "RMP Facility Proximity and Limited English-speaking Households",
     text.fontfamily = "sans",
     style = "natural",
     bg.color = "seashell",
@@ -380,7 +381,7 @@ map_zoom <-
   tm_shape(poc) +
   tm_polygons(fill = "mediumaquamarine", col = NULL) +
   tm_shape(hazards) +
-  tm_polygons(fill = "rosybrown2", col = NULL) +
+  tm_polygons(fill = "orchid", col = NULL) +
   tm_shape(low) +
   tm_polygons(fill = "lavender", col = NULL) +
   tm_shape(mc) +
@@ -393,6 +394,7 @@ map_zoom <-
   tm_scalebar(position = c("left", "bottom")) +
   tm_compass(position = c("right", "top")) +
   tm_layout(
+    main.title = "RMP Facility Proximity and Limited English-speaking Households",
     text.fontfamily = "sans",
     style = "natural",
     bg.color = "seashell",
@@ -412,7 +414,7 @@ map_far <-
   tm_shape(poc) +
   tm_polygons(fill = "mediumaquamarine", col = NULL) +
   tm_shape(hazards) +
-  tm_polygons(fill = "rosybrown2", col = NULL) +
+  tm_polygons(fill = "orchid", col = NULL) +
   tm_shape(low) +
   tm_polygons(fill = "lavender", col = NULL) +
   tm_shape(mc) +
@@ -427,7 +429,7 @@ map_far <-
   tm_add_legend(
     type = "polygons",
     title = "RMP Proximity and People of Color",
-    fill = c("orangered1", "mediumaquamarine", "rosybrown2", "lavender"),
+    fill = c("orangered1", "mediumaquamarine", "orchid", "lavender"),
     labels = c(
       "High RMP Facility Proximity + High People of Color",
       "High People of Color Only",
@@ -473,7 +475,9 @@ tmap_arrange(
 
 ## Conclusion
 
-These maps identify potential environmental justice concerns in Monterey County, particularly in the northern Monterey County. Communities with higher percentiles of limited english speaking households and higher percentages of people of color overlap with Census block groups that have high RMP facility proximity. Many Census block groups with high RMP facility proximity have limited english-speaking household percentiles of 60 or higher and populations that are at least 65% people of color. The coastal and southern Census block groups have lower RMP facility proximity generally have communities with lower percentiles of limited english-speaking households and lower percentages of people of color. These patterns do not measure exposure or health effects, but they identify areas where higher RMP facility proximity overlaps with potentially vulnerable communities. Further study could examine environmental justice concerns in Monterey County by including factors not captured in the EJSCREEN dataset, such as the population of immigrant farmworkers living in the area. A limitation of this type of analysis is the potential lack of representative or accurate data. Immigrants may be hesitant to share personal information due to fear, privacy concerns, or lack of trust in people or institutions outside of their community.
+These maps highlight potential environmental justice concerns related to Risk Management Program (RMP) facility proximity. The Census block groups with RMP facility proximity above the 90th percentile are located in northern Monterey County. Many Census block groups with high RMP facility proximity have limited English-speaking household percentiles of 60 or higher and populations that are at least 65% people of color. In comparison, coastal and southern Census block groups generally have lower RMP facility proximity, lower percentiles of limited English-speaking households and lower percentages of people of color.
+
+These patterns do not measure exposure or health effects, but they identify areas where higher RMP facility proximity overlaps with potentially vulnerable communities. Populations in northern Monterey County, particularly in and around Salinas, may experience greater environmental injustices related to RMP facility proximity. Further study could examine environmental justice concerns in Monterey County by including factors not captured in the EJSCREEN dataset, such as the population of immigrant farmworkers living in the area. A limitation of this type of analysis is the potential lack of representative or accurate data. Immigrants may be hesitant to share personal information due to fear, privacy concerns, or lack of trust in people or institutions outside of their community.
 
 ## References
 
