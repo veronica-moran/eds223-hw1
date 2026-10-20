@@ -21,6 +21,7 @@ The raw dataset was originally obtained from the EPA website and was accessed fr
     ├── data
     │   └── ejscreen
     ├── hw1-map-making.qmd
+    ├── hw1-map-making.pdf
     └── README.md
 
 **Libraries:**
